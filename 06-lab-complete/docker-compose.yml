@@ -1,12 +1,32 @@
-# ============================================================
-# TODO (tiêu chí 2): chạy agent + redis bằng một lệnh `docker compose up`
-#   • service agent: build từ Dockerfile, map port 8000, đọc thêm env từ .env
-#     (dùng `required: false` để không có file .env vẫn chạy được)
-#   • service redis: image redis:7-alpine, có healthcheck
-#   • agent có REDIS_URL=redis://redis:6379/0 và depends_on redis
-# ============================================================
 services:
   agent:
     build: .
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:${PORT:-8000}"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: ${PORT:-8000}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      AGENT_API_KEY: ${AGENT_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-10}
+      DAILY_BUDGET_USD: ${DAILY_BUDGET_USD:-1}
+    depends_on:
+      redis:
+        condition: service_healthy
+    stop_grace_period: 10s
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+volumes:
+  redis_data:

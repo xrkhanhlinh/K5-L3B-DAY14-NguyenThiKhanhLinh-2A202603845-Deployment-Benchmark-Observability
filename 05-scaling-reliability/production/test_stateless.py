@@ -53,6 +53,7 @@ for i, question in enumerate(questions, 1):
         "question": question,
         "session_id": session_id,
     })
+    assert result.get("storage") == "redis", "Session must use Redis when scaling"
 
     if session_id is None:
         session_id = result["session_id"]
@@ -75,6 +76,8 @@ print(f"✅ All requests served despite different instances!" if len(instances_s
 # Verify history is intact
 print("\n--- Conversation History ---")
 history = get(f"/chat/{session_id}/history")
+assert history["count"] == len(questions) * 2, "Conversation messages were lost"
+assert [m["content"] for m in history["messages"] if m["role"] == "user"] == questions
 print(f"Total messages: {history['count']}")
 for msg in history["messages"]:
     print(f"  [{msg['role']}]: {msg['content'][:60]}...")

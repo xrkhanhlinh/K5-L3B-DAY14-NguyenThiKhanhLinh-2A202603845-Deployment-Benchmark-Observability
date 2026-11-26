@@ -60,6 +60,7 @@ USER appuser
 # PATH để Python tìm được packages của --user install
 ENV PATH=/home/appuser/.local/bin:$PATH
 ENV PYTHONPATH=/app
+ENV PYTHONUSERBASE=/home/appuser/.local
 
 # Expose port
 EXPOSE 8000
