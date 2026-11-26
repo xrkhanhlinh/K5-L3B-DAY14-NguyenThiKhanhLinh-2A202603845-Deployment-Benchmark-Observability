@@ -46,7 +46,16 @@ docker build -f 02-docker/production/Dockerfile -t my-agent:advanced .
 docker image ls my-agent
 ```
 Builder cài dependencies; runtime slim chỉ copy packages/source, bỏ compiler/build tools. Đã bổ sung PYTHONUSERBASE để user non-root tìm packages được copy.
-Build image Part 2 chưa hoàn tất do Docker Desktop mất kết nối VM (no route to host). Không dùng số ví dụ trong README thay số đo.
+Đã build và chạy cả hai image. Đo bằng `docker image inspect --format '{{.Size}}'` sau khi image đã giải nén hoàn chỉnh:
+
+| Image | Bytes | MB (10^6 bytes) |
+|---|---:|---:|
+| my-agent:develop | 1667775153 | 1667,78 |
+| my-agent:advanced | 239811469 | 239,81 |
+
+Giảm `(1667775153 - 239811469) / 1667775153 * 100 = 85,62%`. Base full chứa nhiều công cụ không cần trong runtime; slim và multi-stage loại compiler khỏi image cuối. Không dùng kích thước trung gian lúc Docker chưa giải nén xong.
+
+Container develop publish `8012:8000`: `/health` trả 200 với `{"status":"ok","uptime_seconds":71.8,"container":true}`; `POST /ask?question=Docker` trả 200 và câu trả lời về container. Đã dừng container sau kiểm tra.
 
 ### Exercise 2.4
 ```mermaid
@@ -57,7 +66,7 @@ flowchart LR
  A -. QDRANT_URL .-> Q[Qdrant :6333]
 ```
 Service liên lạc qua DNS trong network internal. Agent không publish trực tiếp. App mock mẫu chưa thực sự dùng Redis/Qdrant dù Compose khai báo URL.
-Chưa test được Nginx do Docker Desktop mất kết nối VM.
+Đã chạy đủ 4 service bằng project `k5-day14-docker`. `GET http://localhost/health` trả `HTTP/1.1 200 OK`, `Server: nginx`, body `{"status":"ok","uptime_seconds":36.9,"version":"2.0.0","timestamp":"2026-11-26T17:44:27.372056"}`. `POST /ask` JSON `{"question":"Docker"}` trả 200: `{"answer":"Container là cách đóng gói app để chạy ở mọi nơi. Build once, run anywhere!"}`. Đã `down -v` đúng project sau khi kiểm tra.
 
 ## Part 3 — Cloud Deployment
 
@@ -109,7 +118,7 @@ Giới hạn lab: check-then-charge có thể vượt nhẹ budget do request đ
 
 ### Exercise 5.2
 Uvicorn xử lý SIGTERM: ngừng nhận connection mới, đợi request đang chạy, rồi lifespan đóng Redis. Không override signal handler. Docker dùng exec để Uvicorn nhận signal trực tiếp. timeout graceful 8 giây; Compose stop_grace_period 10 giây.
-Kết quả shutdown đang chờ bộ chấm Linux; không coi bài test Windows là đã đạt SIGTERM.
+Đã kiểm tra trên Linux: SIGTERM khi có request vẫn trả 200, process thoát code 0; `docker stop` thoát code 0 trong 0,9 giây.
 
 ### Exercise 5.3–5.5
 Session lưu Redis theo session_id, mọi instance đọc cùng state; TTL 3600 giây, tối đa 20 messages. Mẫu còn fallback RAM khi Redis thiếu nên phải xác nhận storage=redis khi scale.
@@ -121,12 +130,29 @@ python test_stateless.py
 docker compose -p k5-day14-scaling down
 ```
 Endpoint POST /chat qua cổng 8080. Script đã bổ sung assert storage=redis, 10 messages và đúng thứ tự câu hỏi. Script không tự kill instance, không coi kết quả này là test failover.
-Chưa chạy được stack Part 5 do Docker Desktop mất kết nối VM.
+Đã chạy đúng stack 3 instance. Session `a1ca8cd7-bc80-428b-99b5-2a4c19bfdb17`: request 1–5 lần lượt qua `instance-dfc42e`, `instance-adb40c`, `instance-02afed`, `instance-dfc42e`, `instance-adb40c`. Script kết thúc thành công, xác nhận storage Redis, history đủ 10 messages và đúng thứ tự. Đã `down -v` đúng project sau kiểm tra.
 
 ## Part 6 — Final Project
 Đã thay TODO của app, Dockerfile, Compose, env template và cấu hình deploy.
-Kiểm tra tĩnh: 28/28 checks đạt. static-only chưa tương đương PASS 12/12 vì runtime và Docker chưa hoàn tất.
-Giữ nguyên script chấm. Lần chạy Linux đã đi qua health/auth/rate-limit/restart/readiness/cost/SIGTERM, nhưng bị kẹt ở bước Docker build khi engine mất kết nối VM; chưa có kết luận PASS 12/12. Image riêng k5-day14-final:local đã build thành công; docker image inspect trả Size=66559185 bytes (63.48 MiB).
+Giữ nguyên script chấm. Chạy bản đầy đủ trong container Python Linux có Docker socket, sau khi xử lý Docker Desktop lỗi I/O do ổ D hết dung lượng. Image do bộ chấm build đo được 273 MiB; Docker stop code 0 trong 0,9 giây. Kết quả cuối: 43/43 checks, PASS 12/12. URL cloud được kiểm riêng bằng bốn lệnh curl ở DEPLOYMENT.md.
+
+```text
+📋 Checklist Deliverable
+✅ Dockerfile (multi-stage, < 500 MB)
+✅ docker-compose.yml (agent + redis)
+✅ .dockerignore
+✅ Health check endpoint (GET /health)
+✅ Readiness endpoint (GET /ready)
+✅ API Key authentication
+✅ Rate limiting
+✅ Cost guard
+✅ Config từ environment variables
+✅ Structured logging
+✅ Graceful shutdown
+✅ Public URL ready (Railway / Render config)
+Result: 12/12 tiêu chí đạt · 43/43 checks passed
+🎉 PASS 12/12 — PRODUCTION READY! Deploy nào!
+```
 
 ## Part 7 — Benchmark & Observability
 Xem [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md) và [reports/](reports/).
@@ -142,17 +168,19 @@ Exit 1 khi accuracy thấp hoặc có regression. Đặt job là required status
 - [x] Triển khai Part 6; không sửa script chấm/golden dataset.
 - [x] Có 401/200/429 thực tế và eval trước/sau sửa KB.
 - [x] Có 10 file JSON hiệu năng/chất lượng.
-- [ ] Bộ chấm đầy đủ PASS 12/12.
-- [ ] Image size/Compose/stateless runtime.
+- [x] Bộ chấm đầy đủ PASS 12/12.
+- [x] Image size/Compose/stateless runtime.
 - [x] Render /health, /ready, /ask thiếu key, /ask có key trả 200/200/401/200.
-- [ ] Ba ảnh deploy.
-- [ ] Grafana/Jaeger/2 alerts firing và 4 ảnh Part 7.
-- [ ] CSV scale 1/3 và đối chiếu báo cáo.
+- [x] Ba ảnh deploy.
+- [x] Stack quan sát, trace chậm/lỗi và log khớp trace_id, 2 alert cùng firing có thời gian đo thật.
+- [ ] Bốn ảnh giao diện Part 7 (CUA tự chặn vì không xác minh được URL Windows).
+- [x] CSV scale 1/3 và đối chiếu báo cáo.
+- [x] Repo Public, tên đúng mẫu SUBMISSION.md; remote và repo nguồn Render đã cập nhật.
 
 ## AI log
 - Yêu cầu: đọc repo, hoàn thiện yêu cầu, chỉ thêm file cần cho bài, tự kiểm và push main; sau đó người dùng yêu cầu push main ngay.
-- AI cung cấp code Part 6, package path Docker, metric, KB, giải thích và chạy kiểm thử/benchmark.
-- AI kiểm bằng script chấm nguyên bản, curl, baseline/fixed eval, load_test; các bước Docker/cloud còn chờ được ghi rõ.
+- AI cung cấp code Part 6, package path Docker, metric, KB, giải thích và chạy kiểm thử/benchmark. AI tiếp tục điều khiển máy theo yêu cầu học viên, phục hồi Docker và dọn build cache, chạy Compose/stateless/Locust/chaos, đối chiếu JSON/CSV và đổi tên repo đúng mẫu.
+- AI kiểm bằng script chấm nguyên bản trên Linux/Docker (PASS 12/12), curl, baseline/fixed eval, load_test; triển khai Render và chụp bằng chứng trên trình duyệt.
 - Học viên chọn Render và tự Authorize CLI. Chưa ghi nhận việc học viên tự sửa code hoặc chạy lại; không gán thao tác AI cho học viên.
 
 ## HTTP evidence (captured from curl -i)
@@ -247,4 +275,6 @@ referrer-policy: strict-origin-when-cross-origin
 ```
 
 ### Review trước push
-Đã parse 41 file Python, đọc hợp lệ đủ 10 JSON, xác nhận fixed eval 23/23 không regression. TestClient kiểm /health=200 khi Redis hỏng, /ready=503, thiếu/sai key=401, question trắng=422 và Redis lỗi ở /ask=503. git diff --check đạt sau chuẩn hóa newline. Không stage .env/token hoặc hai file chấm bị cấm sửa. Commit 05e445e đã push main theo yêu cầu mới của học viên.
+Đã parse 41 file Python, đọc hợp lệ đủ 10 JSON, xác nhận fixed eval 23/23 không regression. TestClient kiểm /health=200 khi Redis hỏng, /ready=503, thiếu/sai key=401, question trắng=422 và Redis lỗi ở /ask=503. Bộ chấm Linux/Docker đầy đủ PASS 12/12; Part 2 và stateless 3 instance đã kiểm runtime; hai CSV scale khớp bản trong production; trace/log và thời gian hai alert firing lấy từ API/log thực tế. Render được kiểm lại 200/200/401/200 sau đổi tên repo. Ba ảnh deploy đã chụp và chuyển đúng định dạng PNG, giữ nguyên nội dung.
+
+Chưa hoàn thành bốn ảnh Part 7: CUA tự dừng khi không xác minh chắc chắn URL trên Windows. Đã hỏi học viên yêu cầu rõ việc dùng Playwright theo quy định của công cụ; chưa nhận câu trả lời nên chưa dùng công nghệ thay thế. Không gán trạng thái hoàn thành cho yêu cầu ảnh. Không stage .env/token hoặc hai file chấm bị cấm sửa.

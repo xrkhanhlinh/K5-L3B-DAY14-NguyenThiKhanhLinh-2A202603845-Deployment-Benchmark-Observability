@@ -5,6 +5,7 @@ https://k5-day14-agent-m1o9.onrender.com
 
 ## Platform
 Render, gói free, region Singapore.
+- Repo Public đã đổi đúng mẫu: [K5-L3B-DAY14-NguyenThiKhanhLinh-2A202603845-Deployment-Benchmark-Observability](https://github.com/xrkhanhlinh/K5-L3B-DAY14-NguyenThiKhanhLinh-2A202603845-Deployment-Benchmark-Observability). Render đã được cập nhật repo nguồn mới, branch main, rootDir 06-lab-complete.
 - Web service: `k5-day14-agent`, ID `srv-dc46dmuc6qcc73ckqn50`.
 - Redis: `day14-redis`, ID `red-dc46d5vlk1mc739ose30`, trạng thái available.
 - Deploy `dep-dc46dn6c6qcc73ckqo7g` từ commit `05e445e536b6dabc20542682a8b8493518947e9e` đã chuyển sang `live`.
@@ -43,7 +44,9 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X POST "$BASE/ask" -H 'Content-Type: 
 curl -sS -o /dev/null -w '%{http_code}\n' -X POST "$BASE/ask" -H 'Content-Type: application/json' -H "X-API-Key: $AGENT_API_KEY" -d '{"question":"Hello"}'
 ```
 
-## Bằng chứng ảnh còn thiếu
-`screenshots/dashboard.png`, `screenshots/running.png`, `screenshots/test.png` chưa được chụp. Công cụ điều khiển trình duyệt timeout; chưa dùng ảnh giả thay thế.
+## Bằng chứng ảnh
+- [Dashboard Render: Live](screenshots/dashboard.png).
+- [Ứng dụng public trả health](screenshots/running.png).
+- [Kết quả bốn lệnh curl](screenshots/test.png): ảnh trình duyệt mở file output thực tế, không chứa API key.
 
 Tham khảo cấu hình: [Render Blueprint specification](https://render.com/docs/blueprint-spec).
