@@ -94,4 +94,4 @@ Required: Locust headless, 100 users, ramp 10/s, 2 minutes for 1 and 3 instances
 2. Average latency hides outliers; report p95/p99 and errors together.
 3. Cost per correct answer captures the retrieval trade-off better than cost per call.
 
-For a real deployment: add proxy/synthetic availability metrics, request queue saturation, quality regression checks and strict atomic budget reservations. Remaining evidence: full Docker checker, public Render endpoint, scaling CSVs, real traces/alerts and screenshots.
+For a real deployment: add proxy/synthetic availability metrics, request queue saturation, quality regression checks and strict atomic budget reservations. Render endpoint is live and verified 200/200/401/200 (see DEPLOYMENT.md). Remaining evidence: full Docker checker, scaling CSVs, real traces/alerts and screenshots. Docker Desktop lost its VM connection with no route to host; do not treat incomplete Docker runs as successful.

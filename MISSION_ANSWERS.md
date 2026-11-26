@@ -46,7 +46,7 @@ docker build -f 02-docker/production/Dockerfile -t my-agent:advanced .
 docker image ls my-agent
 ```
 Builder cài dependencies; runtime slim chỉ copy packages/source, bỏ compiler/build tools. Đã bổ sung PYTHONUSERBASE để user non-root tìm packages được copy.
-Kết quả image size và test container đang chờ build; chưa nhận số ví dụ trong README là số đo.
+Build image Part 2 chưa hoàn tất do Docker Desktop mất kết nối VM (no route to host). Không dùng số ví dụ trong README thay số đo.
 
 ### Exercise 2.4
 ```mermaid
@@ -57,12 +57,12 @@ flowchart LR
  A -. QDRANT_URL .-> Q[Qdrant :6333]
 ```
 Service liên lạc qua DNS trong network internal. Agent không publish trực tiếp. App mock mẫu chưa thực sự dùng Redis/Qdrant dù Compose khai báo URL.
-Kết quả test Nginx đang chờ stack.
+Chưa test được Nginx do Docker Desktop mất kết nối VM.
 
 ## Part 3 — Cloud Deployment
 
 ### Exercise 3.1–3.2
-Chọn Render. Cấu hình và kết quả cloud tại [DEPLOYMENT.md](DEPLOYMENT.md).
+Chọn Render. URL public https://k5-day14-agent-m1o9.onrender.com đã trả đúng 200/200/401/200. Cấu hình và kết quả cloud tại [DEPLOYMENT.md](DEPLOYMENT.md).
 
 | Nội dung | Railway | Render |
 |---|---|---|
@@ -121,12 +121,12 @@ python test_stateless.py
 docker compose -p k5-day14-scaling down
 ```
 Endpoint POST /chat qua cổng 8080. Script đã bổ sung assert storage=redis, 10 messages và đúng thứ tự câu hỏi. Script không tự kill instance, không coi kết quả này là test failover.
-Kết quả runtime Part 5 đang chờ stack.
+Chưa chạy được stack Part 5 do Docker Desktop mất kết nối VM.
 
 ## Part 6 — Final Project
 Đã thay TODO của app, Dockerfile, Compose, env template và cấu hình deploy.
 Kiểm tra tĩnh: 28/28 checks đạt. static-only chưa tương đương PASS 12/12 vì runtime và Docker chưa hoàn tất.
-Giữ nguyên script chấm. Output đầy đủ sẽ cập nhật sau lần chạy Linux.
+Giữ nguyên script chấm. Lần chạy Linux đã đi qua health/auth/rate-limit/restart/readiness/cost/SIGTERM, nhưng bị kẹt ở bước Docker build khi engine mất kết nối VM; chưa có kết luận PASS 12/12. Image riêng k5-day14-final:local đã build thành công; docker image inspect trả Size=66559185 bytes (63.48 MiB).
 
 ## Part 7 — Benchmark & Observability
 Xem [BENCHMARK_REPORT.md](BENCHMARK_REPORT.md) và [reports/](reports/).
@@ -144,7 +144,8 @@ Exit 1 khi accuracy thấp hoặc có regression. Đặt job là required status
 - [x] Có 10 file JSON hiệu năng/chất lượng.
 - [ ] Bộ chấm đầy đủ PASS 12/12.
 - [ ] Image size/Compose/stateless runtime.
-- [ ] Render 200/200/401/200 và 3 ảnh deploy.
+- [x] Render /health, /ready, /ask thiếu key, /ask có key trả 200/200/401/200.
+- [ ] Ba ảnh deploy.
 - [ ] Grafana/Jaeger/2 alerts firing và 4 ảnh Part 7.
 - [ ] CSV scale 1/3 và đối chiếu báo cáo.
 
@@ -244,3 +245,6 @@ referrer-policy: strict-origin-when-cross-origin
 
 {"detail":{"error":"Rate limit exceeded","limit":10,"window_seconds":60,"retry_after_seconds":58}}
 ```
+
+### Review trước push
+Đã parse 41 file Python, đọc hợp lệ đủ 10 JSON, xác nhận fixed eval 23/23 không regression. TestClient kiểm /health=200 khi Redis hỏng, /ready=503, thiếu/sai key=401, question trắng=422 và Redis lỗi ở /ask=503. git diff --check đạt sau chuẩn hóa newline. Không stage .env/token hoặc hai file chấm bị cấm sửa. Commit 05e445e đã push main theo yêu cầu mới của học viên.
