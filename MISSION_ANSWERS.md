@@ -174,9 +174,10 @@ Exit 1 khi accuracy thấp hoặc có regression. Đặt job là required status
 - [x] Ba ảnh deploy.
 - [x] Stack quan sát, trace chậm/lỗi và log khớp trace_id, 2 alert cùng firing có thời gian đo thật.
 - [x] Ảnh Grafana có tải: screenshots/grafana-dashboard.png.
-- [ ] Ba ảnh Jaeger/Prometheus còn thiếu (CUA tự chặn khi chuyển sang Jaeger vì không xác minh được URL Windows).
+- [x] Ảnh Jaeger trace chậm, trace lỗi có exception và trang Prometheus với hai alert cùng firing.
 - [x] CSV scale 1/3 và đối chiếu báo cáo.
 - [x] Repo Public, tên đúng mẫu SUBMISSION.md; remote và repo nguồn Render đã cập nhật.
+- [x] Đã dừng tiến trình tạo tải và `docker compose -p k5-day14-observability down -v`; các container dự án khác vẫn healthy.
 
 ## AI log
 - Yêu cầu: đọc repo, hoàn thiện yêu cầu, chỉ thêm file cần cho bài, tự kiểm và push main; sau đó người dùng yêu cầu push main ngay.
@@ -278,4 +279,6 @@ referrer-policy: strict-origin-when-cross-origin
 ### Review trước push
 Đã parse 41 file Python, đọc hợp lệ đủ 10 JSON, xác nhận fixed eval 23/23 không regression. TestClient kiểm /health=200 khi Redis hỏng, /ready=503, thiếu/sai key=401, question trắng=422 và Redis lỗi ở /ask=503. Bộ chấm Linux/Docker đầy đủ PASS 12/12; Part 2 và stateless 3 instance đã kiểm runtime; hai CSV scale khớp bản trong production; trace/log và thời gian hai alert firing lấy từ API/log thực tế. Render được kiểm lại 200/200/401/200 sau đổi tên repo. Ba ảnh deploy đã chụp và chuyển đúng định dạng PNG, giữ nguyên nội dung.
 
-Đã chụp thêm Grafana có tải bằng CUA lúc khoảng 07:40 GMT+7 ngày 27/11; ảnh cho thấy Golden Signals, 3 instance và traffic/error/latency thực tế. Còn ba ảnh Jaeger/Prometheus: CUA tự dừng khi chuyển trang vì không xác minh chắc chắn URL Windows. Chưa dùng công nghệ thay thế khi chưa có yêu cầu rõ của học viên. Không gán trạng thái hoàn thành cho ba ảnh còn thiếu. Không stage .env/token hoặc hai file chấm bị cấm sửa.
+Đã chụp Grafana có tải bằng CUA lúc khoảng 07:40 GMT+7 ngày 27/11; ảnh cho thấy Golden Signals, 3 instance và traffic/error/latency thực tế. Sau khi CUA tự dừng do xác minh URL Windows, học viên yêu cầu rõ dùng Playwright. AI dùng Playwright với Chrome có sẵn, chụp hai trace đúng ID trong báo cáo (mở span LLM và exception) cùng trang Prometheus thấy AgentHighErrorRate và AgentHighLatencyP95 cùng firing. Đã xem lại đủ 7 ảnh PNG; không sửa nội dung UI hoặc tạo ảnh giả. Script/công cụ tạm nằm ngoài repo. Không stage .env/token hoặc hai file chấm bị cấm sửa.
+
+Kiểm tra cuối: 7/7 ảnh đúng định dạng PNG, đủ 10 JSON hợp lệ, hai CSV ở gốc khớp bản export production, 41 file Python parse được, không tìm thấy key Render trong file chuẩn bị commit và `git diff --check` đạt. Đã tắt stack quan sát bằng đúng project và dừng tiến trình tạo tải; giữ service Render để chấm bài.

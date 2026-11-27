@@ -57,14 +57,14 @@ Evaluation used MOCK_ERROR_RATE=0. The unchanged dataset has 23 cases; per-answe
 
 ## 4. Observability stack
 
-Stack verified: Nginx, 3 instrumented agent containers, Prometheus, Grafana, Jaeger and Locust. Prometheus discovered all 3 agent targets as up. Existing `promtool test rules` returned SUCCESS. The following values were collected from Prometheus/Jaeger HTTP APIs and Docker JSON logs; Grafana was captured with live traffic at approximately 07:40 GMT+7 on November 27; three Jaeger/Prometheus screenshots remain incomplete because Windows Computer Use stopped during navigation when it could not verify the browser URL.
+Stack verified: Nginx, 3 instrumented agent containers, Prometheus, Grafana, Jaeger and Locust. Prometheus discovered all 3 agent targets as up. Existing `promtool test rules` returned SUCCESS. Values below were collected from Prometheus/Jaeger HTTP APIs and Docker JSON logs. Grafana was captured with live traffic at approximately 07:40 GMT+7 on November 27. The remaining three UI screenshots were captured with Playwright using the existing Chrome installation, after explicit user authorization, at approximately 07:57–08:00 GMT+7. The Jaeger images show the same trace IDs analyzed below; the Prometheus image shows both required alerts firing together.
 
 ### 4.1 Required screenshots
 
 - [x] [Grafana with traffic](screenshots/grafana-dashboard.png)
-- [ ] Jaeger slow trace
-- [ ] Jaeger error trace
-- [ ] Prometheus with at least two simultaneous firing alerts
+- [x] [Jaeger slow trace with expanded LLM span](screenshots/jaeger-slow-trace.png)
+- [x] [Jaeger error trace with exception event](screenshots/jaeger-error-trace.png)
+- [x] [Prometheus with two simultaneous firing alerts](screenshots/prometheus-alert-firing.png)
 
 ### 4.2 Chaos experiments
 
@@ -134,7 +134,7 @@ docker compose -p k5-day14-observability run --rm --no-deps locust -f /mnt/locus
 ```
 `--no-deps` is intentional: otherwise `compose run` restores the dependency's default two replicas and invalidates the one-instance comparison. The initial run affected by this and startup 502/504 responses was discarded; the submitted CSVs are from completed reruns with the correct replica counts.
 
-## 6. Lessons and remaining work
+## 6. Lessons and final review
 
 1. Successful HTTP responses do not prove semantic correctness.
 2. Average latency hides outliers; report p95/p99 and errors together.
@@ -142,4 +142,6 @@ docker compose -p k5-day14-observability run --rm --no-deps locust -f /mnt/locus
 
 For a real deployment: add proxy/synthetic availability metrics, request queue saturation, quality regression checks and strict atomic budget reservations. The unchanged lab error alert fires above 5%, which is looser than this report's 2% error SLO; production rules should also detect sustained SLO/error-budget burn below 5%.
 
-Render is live and rechecked 200/200/401/200 after updating the repository URL (see DEPLOYMENT.md). Full Linux/Docker checker passed 12/12, fixed eval passed 23/23, both scaling CSVs and actual trace/alert measurements are complete. Remaining submission gap: three Jaeger/Prometheus UI screenshots. The Grafana screenshot was captured during a later replay of the same fault workload, so its live panel values differ from the earlier API snapshot above. Windows Computer Use stopped on URL verification during Jaeger navigation; no substitute/fabricated screenshots were created. CLI evidence alone is not marked as satisfying the remaining screenshot requirements.
+Render is live and rechecked 200/200/401/200 after updating the repository URL (see DEPLOYMENT.md). Full Linux/Docker checker passed 12/12, fixed eval passed 23/23, both scaling CSVs and actual trace/alert measurements are complete. All seven required screenshots are present and visually reviewed. Grafana and Prometheus screenshots were captured during later replays of the same fault workload, so live panel values and alert activeAt timestamps differ from the earlier API snapshot and timing experiment above. The cost alert was inactive in the later Prometheus screenshot; error rate and latency alerts were both firing. No screenshot content was fabricated or changed.
+
+After collecting evidence, the load generator was stopped and `docker compose -p k5-day14-observability down -v` completed. Other pre-existing project containers remained healthy. The Render deployment remains available for grading.
