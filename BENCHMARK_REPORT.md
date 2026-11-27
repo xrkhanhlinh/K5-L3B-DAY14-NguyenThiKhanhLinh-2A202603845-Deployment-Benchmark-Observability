@@ -57,11 +57,11 @@ Evaluation used MOCK_ERROR_RATE=0. The unchanged dataset has 23 cases; per-answe
 
 ## 4. Observability stack
 
-Stack verified: Nginx, 3 instrumented agent containers, Prometheus, Grafana, Jaeger and Locust. Prometheus discovered all 3 agent targets as up. Existing `promtool test rules` returned SUCCESS. The following values were collected from Prometheus/Jaeger HTTP APIs and Docker JSON logs; the four UI screenshots remain incomplete because Windows Computer Use stopped when it could not verify the current browser URL.
+Stack verified: Nginx, 3 instrumented agent containers, Prometheus, Grafana, Jaeger and Locust. Prometheus discovered all 3 agent targets as up. Existing `promtool test rules` returned SUCCESS. The following values were collected from Prometheus/Jaeger HTTP APIs and Docker JSON logs; Grafana was captured with live traffic at approximately 07:40 GMT+7 on November 27; three Jaeger/Prometheus screenshots remain incomplete because Windows Computer Use stopped during navigation when it could not verify the browser URL.
 
 ### 4.1 Required screenshots
 
-- [ ] Grafana with traffic
+- [x] [Grafana with traffic](screenshots/grafana-dashboard.png)
 - [ ] Jaeger slow trace
 - [ ] Jaeger error trace
 - [ ] Prometheus with at least two simultaneous firing alerts
@@ -142,4 +142,4 @@ docker compose -p k5-day14-observability run --rm --no-deps locust -f /mnt/locus
 
 For a real deployment: add proxy/synthetic availability metrics, request queue saturation, quality regression checks and strict atomic budget reservations. The unchanged lab error alert fires above 5%, which is looser than this report's 2% error SLO; production rules should also detect sustained SLO/error-budget burn below 5%.
 
-Render is live and rechecked 200/200/401/200 after updating the repository URL (see DEPLOYMENT.md). Full Linux/Docker checker passed 12/12, fixed eval passed 23/23, both scaling CSVs and actual trace/alert measurements are complete. Remaining submission gap: four Part 7 UI screenshots; Windows Computer Use stopped on URL verification and no substitute/fabricated screenshots were created. CLI evidence alone is not marked as satisfying the screenshot requirement.
+Render is live and rechecked 200/200/401/200 after updating the repository URL (see DEPLOYMENT.md). Full Linux/Docker checker passed 12/12, fixed eval passed 23/23, both scaling CSVs and actual trace/alert measurements are complete. Remaining submission gap: three Jaeger/Prometheus UI screenshots. The Grafana screenshot was captured during a later replay of the same fault workload, so its live panel values differ from the earlier API snapshot above. Windows Computer Use stopped on URL verification during Jaeger navigation; no substitute/fabricated screenshots were created. CLI evidence alone is not marked as satisfying the remaining screenshot requirements.

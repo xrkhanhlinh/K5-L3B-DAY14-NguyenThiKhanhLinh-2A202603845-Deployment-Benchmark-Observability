@@ -173,7 +173,8 @@ Exit 1 khi accuracy thấp hoặc có regression. Đặt job là required status
 - [x] Render /health, /ready, /ask thiếu key, /ask có key trả 200/200/401/200.
 - [x] Ba ảnh deploy.
 - [x] Stack quan sát, trace chậm/lỗi và log khớp trace_id, 2 alert cùng firing có thời gian đo thật.
-- [ ] Bốn ảnh giao diện Part 7 (CUA tự chặn vì không xác minh được URL Windows).
+- [x] Ảnh Grafana có tải: screenshots/grafana-dashboard.png.
+- [ ] Ba ảnh Jaeger/Prometheus còn thiếu (CUA tự chặn khi chuyển sang Jaeger vì không xác minh được URL Windows).
 - [x] CSV scale 1/3 và đối chiếu báo cáo.
 - [x] Repo Public, tên đúng mẫu SUBMISSION.md; remote và repo nguồn Render đã cập nhật.
 
@@ -277,4 +278,4 @@ referrer-policy: strict-origin-when-cross-origin
 ### Review trước push
 Đã parse 41 file Python, đọc hợp lệ đủ 10 JSON, xác nhận fixed eval 23/23 không regression. TestClient kiểm /health=200 khi Redis hỏng, /ready=503, thiếu/sai key=401, question trắng=422 và Redis lỗi ở /ask=503. Bộ chấm Linux/Docker đầy đủ PASS 12/12; Part 2 và stateless 3 instance đã kiểm runtime; hai CSV scale khớp bản trong production; trace/log và thời gian hai alert firing lấy từ API/log thực tế. Render được kiểm lại 200/200/401/200 sau đổi tên repo. Ba ảnh deploy đã chụp và chuyển đúng định dạng PNG, giữ nguyên nội dung.
 
-Chưa hoàn thành bốn ảnh Part 7: CUA tự dừng khi không xác minh chắc chắn URL trên Windows. Đã hỏi học viên yêu cầu rõ việc dùng Playwright theo quy định của công cụ; chưa nhận câu trả lời nên chưa dùng công nghệ thay thế. Không gán trạng thái hoàn thành cho yêu cầu ảnh. Không stage .env/token hoặc hai file chấm bị cấm sửa.
+Đã chụp thêm Grafana có tải bằng CUA lúc khoảng 07:40 GMT+7 ngày 27/11; ảnh cho thấy Golden Signals, 3 instance và traffic/error/latency thực tế. Còn ba ảnh Jaeger/Prometheus: CUA tự dừng khi chuyển trang vì không xác minh chắc chắn URL Windows. Chưa dùng công nghệ thay thế khi chưa có yêu cầu rõ của học viên. Không gán trạng thái hoàn thành cho ba ảnh còn thiếu. Không stage .env/token hoặc hai file chấm bị cấm sửa.
